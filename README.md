@@ -4,8 +4,9 @@ Benchmark for the JWT package developed by golang
 
 Tested packages
 ```
-github.com/dgrijalva/jwt-go
-github.com/pascaldekloe/jwt
+JWTA github.com/dgrijalva/jwt-go
+JWTB github.com/pascaldekloe/jwt
+JWTC github.com/gbrlsnchs/jwt/v3
 ```
 
 
@@ -18,6 +19,7 @@ Result:
 ```
 goos: darwin
 goarch: amd64
-BenchmarkTokenA-4           1000           1631557 ns/op
-BenchmarkTokenB-4           1000           1622243 ns/op
+BenchmarkJWTA-4           1000           1636959 ns/op
+BenchmarkJWTB-4           1000           1629493 ns/op
+BenchmarkJWTC-4           1000           1631967 ns/op
 ```

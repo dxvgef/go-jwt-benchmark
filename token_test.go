@@ -76,12 +76,15 @@ func init() {
 
 	tokenA.Data.ID = "12345"
 	tokenA.Data.Username = "dxvgef"
+	tokenA.ExpiresAt = time.Now().Add(time.Hour).Unix()
 
 	tokenB.Data.ID = "12345"
 	tokenB.Data.Username = "dxvgef"
+	tokenB.Expires = jwtB.NewNumericTime(time.Now().Add(time.Hour))
 
 	tokenC.Data.ID = "12345"
 	tokenC.Data.Username = "dxvgef"
+	tokenC.ExpirationTime = jwtC.NumericDate(time.Now().Add(time.Hour))
 }
 
 func keyFunc(token *jwtA.Token) (interface{}, error) {
@@ -91,7 +94,7 @@ func keyFunc(token *jwtA.Token) (interface{}, error) {
 	return publicKey, nil
 }
 
-func BenchmarkTokenA(b *testing.B) {
+func BenchmarkJWTA(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tokenA.ExpiresAt = time.Now().Add(3 * time.Second).Unix()
 		token := jwtA.NewWithClaims(jwtA.SigningMethodRS256, tokenA)
@@ -117,7 +120,7 @@ func BenchmarkTokenA(b *testing.B) {
 	}
 }
 
-func BenchmarkTokenB(b *testing.B) {
+func BenchmarkJWTB(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tokenB.Expires = jwtB.NewNumericTime(time.Now().Add(3 * time.Second))
 		tokenBytes, err := tokenB.RSASign(jwtB.RS256, privateKey)
@@ -136,7 +139,7 @@ func BenchmarkTokenB(b *testing.B) {
 	}
 }
 
-func BenchmarkTokenC(b *testing.B) {
+func BenchmarkJWTC(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tokenC.ExpirationTime = jwtC.NumericDate(time.Now().Add(3 * time.Second))
 		rsasha := jwtC.NewRS256(jwtC.RSAPrivateKey(privateKey))
@@ -147,7 +150,7 @@ func BenchmarkTokenC(b *testing.B) {
 		}
 
 		var tokenCC TokenC
-		_, err = jwtC.Verify(tokenBytes, rsasha, &tokenCC)
+		_, err = jwtC.Verify(tokenBytes, rsasha, &tokenCC, jwtC.ValidatePayload(&tokenCC.Payload))
 		if err != nil {
 			b.Error(err)
 			return
