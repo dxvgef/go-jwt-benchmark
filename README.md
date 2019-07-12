@@ -4,8 +4,8 @@ Benchmark for the JWT package developed by golang
 
 Tested packages
 ```
-github.com/dgrijalva/jwt-go v3.2.0
-github.com/pascaldekloe/jwt v1.2.1
+github.com/dgrijalva/jwt-go
+github.com/pascaldekloe/jwt
 ```
 
 

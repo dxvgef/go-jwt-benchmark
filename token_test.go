@@ -10,12 +10,8 @@ import (
 	"time"
 
 	jwtA "github.com/dgrijalva/jwt-go"
+	jwtC "github.com/gbrlsnchs/jwt/v3"
 	jwtB "github.com/pascaldekloe/jwt"
-)
-
-var (
-	publicKey  *rsa.PublicKey
-	privateKey *rsa.PrivateKey
 )
 
 type TokenA struct {
@@ -34,12 +30,45 @@ type TokenB struct {
 	jwtB.Claims
 }
 
+type TokenC struct {
+	Data struct {
+		ID       string `json:"id,omitempty"`
+		Username string `json:"username,omitempty"`
+	} `json:"data,omitempty"`
+	jwtC.Payload
+}
+
+var publicKey *rsa.PublicKey
+var privateKey *rsa.PrivateKey
+
 var tokenA TokenA
 var tokenB TokenB
+var tokenC TokenC
 
 func init() {
 	log.SetFlags(log.Lshortfile)
-	err := loadKey()
+
+	// 读取公钥
+	publicKeyByte, err := ioutil.ReadFile("./public.key")
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
+	}
+
+	// 读取私钥
+	privateKeyByte, err := ioutil.ReadFile("./private.key")
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
+	}
+
+	publicKey, err = ParseRSAPublicKeyFromPEM(publicKeyByte)
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
+	}
+
+	privateKey, err = ParseRSAPrivateKeyFromPEM(privateKeyByte)
 	if err != nil {
 		log.Println(err.Error())
 		os.Exit(1)
@@ -50,33 +79,9 @@ func init() {
 
 	tokenB.Data.ID = "12345"
 	tokenB.Data.Username = "dxvgef"
-}
 
-func loadKey() error {
-	// 读取公钥
-	publicKeyByte, err := ioutil.ReadFile("./public.key")
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-	publicKey, err = jwtA.ParseRSAPublicKeyFromPEM(publicKeyByte)
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-
-	// 读取私钥
-	privateKeyByte, err := ioutil.ReadFile("./private.key")
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-	privateKey, err = jwtA.ParseRSAPrivateKeyFromPEM(privateKeyByte)
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-	return nil
+	tokenC.Data.ID = "12345"
+	tokenC.Data.Username = "dxvgef"
 }
 
 func keyFunc(token *jwtA.Token) (interface{}, error) {
@@ -128,5 +133,24 @@ func BenchmarkTokenB(b *testing.B) {
 			return
 		}
 		token.Valid(time.Now())
+	}
+}
+
+func BenchmarkTokenC(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		tokenC.ExpirationTime = jwtC.NumericDate(time.Now().Add(3 * time.Second))
+		rsasha := jwtC.NewRS256(jwtC.RSAPrivateKey(privateKey))
+		tokenBytes, err := jwtC.Sign(tokenC, rsasha)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+
+		var tokenCC TokenC
+		_, err = jwtC.Verify(tokenBytes, rsasha, &tokenCC)
+		if err != nil {
+			b.Error(err)
+			return
+		}
 	}
 }
