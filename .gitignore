@@ -1,4 +1,13 @@
-.idea
+.idea/
+.vscode/
+.history/
 *.iml
-.vscode
-.history
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+.DS_Store
+go.sum
