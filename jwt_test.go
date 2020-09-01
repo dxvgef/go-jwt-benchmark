@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	cristalhq "github.com/cristalhq/jwt"
+	cristalhq "github.com/cristalhq/jwt/v3"
 	dgrijalva "github.com/dgrijalva/jwt-go"
 	gbrlsnchs "github.com/gbrlsnchs/jwt/v3"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -29,7 +29,7 @@ var (
 	pascaldekloeToken PascaldekloeToken
 	gbrlsnchsToken    GbrlsnchsToken
 	cristalhqToken    CristalhqToken
-	lestrratToken     lestrrat.Token
+	lestrratToken     = lestrrat.New()
 	cristalhqSigner   cristalhq.Signer
 )
 
@@ -96,7 +96,7 @@ func init() {
 	cristalhqToken.Data.ID = "12345"
 	cristalhqToken.Data.Username = "dxvgef"
 
-	cristalhqSigner, err = cristalhq.NewRS256(publicKey, privateKey)
+	cristalhqSigner, err = cristalhq.NewSignerRS(cristalhq.RS256, privateKey)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
@@ -228,7 +228,7 @@ func Benchmark_gbrlsnchs_verify(b *testing.B) {
 
 func Benchmark_cristalhq_sign(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		cristalhqToken.ExpiresAt = cristalhq.Timestamp(time.Now().Add(3 * time.Second).Unix())
+		cristalhqToken.ExpiresAt = cristalhq.NewNumericDate(time.Now().Add(3 * time.Second))
 		tokenBytes, err := cristalhq.BuildBytes(cristalhqSigner, &cristalhqToken)
 		if err != nil {
 			b.Error(err)
@@ -239,9 +239,14 @@ func Benchmark_cristalhq_sign(b *testing.B) {
 }
 
 func Benchmark_cristalhq_verify(b *testing.B) {
+	verifier, err := cristalhq.NewVerifierRS(cristalhq.RS256, publicKey)
+	if err != nil {
+		b.Error(err)
+		return
+	}
 	tokenBytes := strToBytes(tokenStr)
 	for i := 0; i < b.N; i++ {
-		_, err := cristalhq.ParseAndVerify(tokenBytes, cristalhqSigner)
+		_, err := cristalhq.ParseAndVerify(tokenBytes, verifier)
 		if err != nil {
 			b.Error(err)
 			return
@@ -256,7 +261,7 @@ func Benchmark_lestrrat_sign(b *testing.B) {
 			b.Error(err.Error())
 			return
 		}
-		tokenBytes, err := lestrratToken.Sign(jwa.RS256, privateKey)
+		tokenBytes, err := lestrrat.Sign(lestrratToken, jwa.RS256, privateKey)
 		if err != nil {
 			b.Error(err)
 			return
