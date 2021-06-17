@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
@@ -246,7 +245,7 @@ func Benchmark_cristalhq_verify(b *testing.B) {
 	}
 	tokenBytes := strToBytes(tokenStr)
 	for i := 0; i < b.N; i++ {
-		_, err := cristalhq.ParseAndVerify(tokenBytes, verifier)
+		_, err = cristalhq.ParseAndVerify(tokenBytes, verifier)
 		if err != nil {
 			b.Error(err)
 			return
@@ -273,7 +272,7 @@ func Benchmark_lestrrat_sign(b *testing.B) {
 func Benchmark_lestrrat_verify(b *testing.B) {
 	tokenBytes := strToBytes(tokenStr)
 	for i := 0; i < b.N; i++ {
-		_, err := lestrrat.ParseVerify(bytes.NewReader(tokenBytes), jwa.RS256, publicKey)
+		_, err := lestrrat.Parse(tokenBytes, lestrrat.WithValidate(true))
 		if err != nil {
 			b.Error(err)
 			return
