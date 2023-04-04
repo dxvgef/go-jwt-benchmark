@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	cristalhq "github.com/cristalhq/jwt/v4"
+	cristalhq "github.com/cristalhq/jwt/v5"
 	dgrijalva "github.com/dgrijalva/jwt-go"
 	gbrlsnchs "github.com/gbrlsnchs/jwt/v3"
 	golangjwt "github.com/golang-jwt/jwt/v4"
