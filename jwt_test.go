@@ -8,9 +8,8 @@ import (
 	"time"
 
 	cristalhq "github.com/cristalhq/jwt/v5"
-	dgrijalva "github.com/dgrijalva/jwt-go"
 	gbrlsnchs "github.com/gbrlsnchs/jwt/v3"
-	golangjwt "github.com/golang-jwt/jwt/v4"
+	golangjwt "github.com/golang-jwt/jwt/v5"
 	pascaldekloe "github.com/pascaldekloe/jwt"
 )
 
@@ -30,7 +29,7 @@ func init() {
 		log.Println(err.Error())
 		return
 	}
-	publicKey, err = dgrijalva.ParseRSAPublicKeyFromPEM(publicKeyByte)
+	publicKey, err = golangjwt.ParseRSAPublicKeyFromPEM(publicKeyByte)
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -42,7 +41,7 @@ func init() {
 		log.Println(err.Error())
 		return
 	}
-	privateKey, err = dgrijalva.ParseRSAPrivateKeyFromPEM(privateKeyByte)
+	privateKey, err = golangjwt.ParseRSAPrivateKeyFromPEM(privateKeyByte)
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -106,51 +105,6 @@ func Benchmark_cristalhq_verify(b *testing.B) {
 }
 
 // --------------------------- end cristalhq -----------------------------------
-
-// --------------------------- begin dgrijalva ----------------------------------
-func Benchmark_dgrijalva_sign(b *testing.B) {
-	type Claims struct {
-		Data struct {
-			ID       string `json:"id,omitempty"`
-			Username string `json:"username,omitempty"`
-		} `json:"data,omitempty"`
-		dgrijalva.StandardClaims
-	}
-	var (
-		err    error
-		claims Claims
-		token  *dgrijalva.Token
-	)
-	claims.Data.ID = "12345"
-	claims.Data.Username = "dxvgef"
-	// claims.ExpiresAt = time.Now().Add(3 * time.Second).Unix()
-
-	for i := 0; i < b.N; i++ {
-		token = dgrijalva.NewWithClaims(dgrijalva.SigningMethodRS256, claims)
-		tokenStr, err = token.SignedString(privateKey)
-		if err != nil {
-			b.Error(err)
-			return
-		}
-	}
-
-	tokenBytes = strToBytes(tokenStr)
-}
-
-func Benchmark_dgrijalva_verify(b *testing.B) {
-	var err error
-	for i := 0; i < b.N; i++ {
-		_, err = dgrijalva.Parse(tokenStr, func(tk *dgrijalva.Token) (interface{}, error) {
-			return publicKey, nil
-		})
-		if err != nil {
-			b.Error(err)
-			return
-		}
-	}
-}
-
-// --------------------------- end dgrijalva ----------------------------------
 
 // ----------------------------------- begin gbrlsnchs ------------------------------
 func Benchmark_gbrlsnchs_sign(b *testing.B) {
